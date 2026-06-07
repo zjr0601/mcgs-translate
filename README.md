@@ -6,12 +6,45 @@
 
 MCGS 触摸屏的多语言翻译目前靠工程师在 MCGS 里逐条手填，一个项目 2000+ 条。这个工具自动化翻译流程，**不上传服务器，不依赖 AI API**（DeepL 可选），纯浏览器本地运行。
 
-## 快速开始
+## 安装和运行
+
+### 1. 安装 Node.js
+
+先去 [nodejs.org](https://nodejs.org) 下载安装（选 LTS 版本，一路点下一步就行）。
+
+装完后打开终端（CMD 或 PowerShell），确认装好了：
+
+```
+node --version    # 应该显示 v18 或更高
+npm --version     # 应该显示 v9 或更高
+```
+
+### 2. 下载代码
+
+```
+git clone https://github.com/zjr0601/mcgs-translate.git
+cd mcgs-translate
+```
+
+或者直接下载 ZIP 解压进去。
+
+### 3. 安装依赖（只需一次）
 
 ```
 npm install
-npm run dev      # http://localhost:3000
 ```
+
+### 4. 启动
+
+```
+npm run dev
+```
+
+打开浏览器访问 **http://localhost:3000** 就能用了。
+
+### 5. 停止
+
+终端按 `Ctrl + C`。
 
 ## 怎么用
 
