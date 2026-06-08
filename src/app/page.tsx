@@ -235,12 +235,10 @@ export default function Home() {
           <h1 className="text-2xl font-bold text-gray-900">MCGS 多语言翻译</h1>
           <p className="text-sm text-gray-500 mt-1">
             HMI 中→英翻译 · 内置元器件拼接术语库 ·{' '}
-            {glossaryCount > 0 && (
-              <button className="text-blue-500 hover:text-blue-700 underline cursor-pointer"
-                onClick={() => { setGlossaryEntries(loadUserGlossaryEntries()); setShowGlossary(true); }}>
-                用户术语 {glossaryCount} 条
-              </button>
-            )}
+            <button className="text-blue-500 hover:text-blue-700 underline cursor-pointer"
+              onClick={() => { setGlossaryEntries(loadUserGlossaryEntries()); setShowGlossary(true); }}>
+              用户术语 {glossaryCount} 条
+            </button>
           </p>
         </header>
 
