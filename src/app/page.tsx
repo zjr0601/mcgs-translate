@@ -7,7 +7,7 @@ import { StatsBar } from '@/components/StatsBar';
 import { GlossaryPanel } from '@/components/GlossaryPanel';
 import { parseXml, type XmlTextEntry } from '@/lib/parser';
 import { generateXml, generateXmlBlob } from '@/lib/generate';
-import { loadUserGlossary, loadUserGlossaryEntries, learnFromTranslatedXml, addUserTerm, deleteUserTerm, clearUserGlossary, type UserTermEntry } from '@/lib/glossary';
+import { loadUserGlossary, loadUserGlossaryEntries, learnFromTranslatedXml, addUserTerm, deleteUserTerm, clearUserGlossary, importPairs, type UserTermEntry } from '@/lib/glossary';
 import { translateBatch, computeStats, type TranslationStats, type BatchTranslateOutput } from '@/lib/translator';
 import { translateWithDeepL } from '@/lib/deepl';
 import { Button } from '@/components/ui/button';
@@ -199,6 +199,11 @@ export default function Home() {
   const handleGlossaryClear = useCallback(() => {
     clearUserGlossary(); setUserGlossary(loadUserGlossary()); setGlossaryCount(0); setGlossaryEntries([]);
   }, []);
+  const handleGlossaryImport = useCallback((pairs: { zh: string; en: string }[]) => {
+    const n = importPairs(pairs, 'import_paste');
+    setUserGlossary(loadUserGlossary()); setGlossaryCount(loadUserGlossary().size); setGlossaryEntries(loadUserGlossaryEntries());
+    return n;
+  }, []);
 
   // Download
   const handleDownload = useCallback(() => {
@@ -323,7 +328,8 @@ export default function Home() {
 
       {showGlossary && (
         <GlossaryPanel entries={glossaryEntries} onUpdate={handleGlossaryUpdate}
-          onDelete={handleGlossaryDelete} onClear={handleGlossaryClear} onClose={() => setShowGlossary(false)} />
+          onDelete={handleGlossaryDelete} onClear={handleGlossaryClear} onImport={handleGlossaryImport}
+          onClose={() => setShowGlossary(false)} />
       )}
     </main>
   );

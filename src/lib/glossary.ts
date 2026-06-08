@@ -3,7 +3,7 @@
 export interface UserTermEntry {
   zh: string;
   en: string;
-  source: 'example_file' | 'manual_edit';
+  source: 'example_file' | 'manual_edit' | 'import_paste' | 'import_file';
   addedAt: number; // timestamp
 }
 
@@ -99,6 +99,29 @@ export function addUserTerm(zh: string, en: string): void {
 
   entries.push({ zh, en, source: 'manual_edit', addedAt: now });
   saveUserGlossary(entries);
+}
+
+/**
+ * Import pairs from paste/file import. Returns number of NEW terms added.
+ */
+export function importPairs(pairs: { zh: string; en: string }[], source: 'import_paste' | 'import_file' = 'import_paste'): number {
+  const entries = loadUserGlossaryEntries();
+  const existingMap = new Map(entries.map(e => [e.zh, e.en]));
+  const now = Date.now();
+  let added = 0;
+
+  for (const { zh, en } of pairs) {
+    if (!zh || !en) continue;
+    // Overwrite if exists — last import wins
+    const idx = entries.findIndex(e => e.zh === zh);
+    if (idx >= 0) entries.splice(idx, 1);
+    entries.push({ zh, en, source, addedAt: now });
+    existingMap.set(zh, en);
+    added++;
+  }
+
+  saveUserGlossary(entries);
+  return added;
 }
 
 /**
