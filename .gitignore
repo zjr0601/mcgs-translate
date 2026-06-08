@@ -4,3 +4,4 @@ out/
 .env.local
 .env*.local
 test/
+mcgs-translate-v1.zip

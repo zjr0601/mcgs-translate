@@ -8,7 +8,8 @@ import { GlossaryPanel } from '@/components/GlossaryPanel';
 import { parseXml, type XmlTextEntry } from '@/lib/parser';
 import { generateXml, generateXmlBlob } from '@/lib/generate';
 import { loadUserGlossary, loadUserGlossaryEntries, learnFromTranslatedXml, addUserTerm, deleteUserTerm, clearUserGlossary, type UserTermEntry } from '@/lib/glossary';
-import { translateBatch, type TranslationStats, type BatchTranslateOutput } from '@/lib/translator';
+import { translateBatch, computeStats, type TranslationStats, type BatchTranslateOutput } from '@/lib/translator';
+import { translateWithDeepL } from '@/lib/deepl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -130,24 +131,36 @@ export default function Home() {
     alert(`Learned ${learned} new terms from example file.`);
   }, []);
 
-  // Run translation
+  // Run translation (all client-side, no API needed)
   const handleTranslate = useCallback(async () => {
     if (!entries.length) return;
     setIsTranslating(true);
     const active = entries.filter(e => e.zh.trim());
     const inputs = active.map(e => ({ id: e.id, zh: e.zh }));
-    const glossaryArr = Array.from(userGlossary.entries()).map(([zh, en]) => ({ zh, en }));
-    const response = await fetch('/api/translate', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ entries: inputs, userGlossary: glossaryArr, deepLApiKey: deepLKey || undefined }),
-    });
-    const data = await response.json();
-    const batchResults: BatchTranslateOutput[] = data.results;
+
+    // Run 3-layer engine directly in browser
+    let batchResults = translateBatch(inputs, userGlossary);
+
+    // Collect entries that need DeepL
+    const deepLNeeded = batchResults.filter(r => r.en === null && r.zh.trim());
+    if (deepLNeeded.length > 0 && deepLKey) {
+      try {
+        const texts = deepLNeeded.map(r => r.zh);
+        const translations = await translateWithDeepL(texts, { apiKey: deepLKey });
+        for (let i = 0; i < deepLNeeded.length; i++) {
+          deepLNeeded[i].en = translations[i];
+          deepLNeeded[i].method = 'deepl';
+          deepLNeeded[i].confidence = 0.6;
+        }
+      } catch (err) { console.error('DeepL failed:', err); }
+    }
+
+    const stats = computeStats(batchResults);
     const newTrans = new Map(translations);
     for (const r of batchResults) { if (r.en) newTrans.set(r.id, r.en); }
     setTranslations(newTrans);
     setResults(batchResults);
-    setStats(data.stats);
+    setStats(stats);
     setIsTranslating(false);
   }, [entries, translations, userGlossary, deepLKey]);
 
