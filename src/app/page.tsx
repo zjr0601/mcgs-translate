@@ -121,7 +121,7 @@ export default function Home() {
     setStats(null);
   }, []);
 
-  // Handle example file (learn mode)
+  // Handle example file (learn mode) — main page
   const handleExampleFile = useCallback((xml: string) => {
     const parsed = parseXml(xml);
     const pairs = parsed.filter(e => e.zh && e.en).map(e => ({ zh: e.zh, en: e.en }));
@@ -198,6 +198,13 @@ export default function Home() {
   }, []);
   const handleGlossaryClear = useCallback(() => {
     clearUserGlossary(); setUserGlossary(loadUserGlossary()); setGlossaryCount(0); setGlossaryEntries([]);
+  }, []);
+  const handleGlossaryImportXml = useCallback((xml: string) => {
+    const parsed = parseXml(xml);
+    const pairs = parsed.filter(e => e.zh && e.en).map(e => ({ zh: e.zh, en: e.en }));
+    const n = importPairs(pairs, 'import_file');
+    setUserGlossary(loadUserGlossary()); setGlossaryCount(loadUserGlossary().size); setGlossaryEntries(loadUserGlossaryEntries());
+    return n;
   }, []);
   const handleGlossaryImport = useCallback((pairs: { zh: string; en: string }[]) => {
     const n = importPairs(pairs, 'import_paste');
@@ -327,7 +334,7 @@ export default function Home() {
       {showGlossary && (
         <GlossaryPanel entries={glossaryEntries} onUpdate={handleGlossaryUpdate}
           onDelete={handleGlossaryDelete} onClear={handleGlossaryClear} onImport={handleGlossaryImport}
-          onClose={() => setShowGlossary(false)} />
+          onImportXml={handleGlossaryImportXml} onClose={() => setShowGlossary(false)} />
       )}
     </main>
   );

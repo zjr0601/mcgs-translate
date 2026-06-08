@@ -21,12 +21,13 @@ interface GlossaryPanelProps {
   onClear: () => void;
   onClose: () => void;
   onImport: (pairs: { zh: string; en: string }[]) => number;
+  onImportXml: (xml: string) => number;
 }
 
 const PAGE_SIZE = 50;
 
 export function GlossaryPanel({
-  entries, onUpdate, onDelete, onClear, onClose, onImport,
+  entries, onUpdate, onDelete, onClear, onClose, onImport, onImportXml,
 }: GlossaryPanelProps) {
   const [page, setPage] = useState(0);
   const [filter, setFilter] = useState('');
@@ -37,6 +38,7 @@ export function GlossaryPanel({
   const [importText, setImportText] = useState('');
   const [importMsg, setImportMsg] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
+  const xmlFileRef = useRef<HTMLInputElement>(null);
 
   const filtered = useMemo(() => {
     if (!filter) return entries;
@@ -111,6 +113,20 @@ export function GlossaryPanel({
     if (fileRef.current) fileRef.current.value = '';
   }, [onImport]);
 
+  // Handle XML file import
+  const handleXmlFileImport = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const xml = reader.result as string;
+      const n = onImportXml(xml);
+      setImportMsg(`从 XML 导入 ${n} 条新术语`);
+    };
+    reader.readAsText(file, 'utf-8');
+    if (xmlFileRef.current) xmlFileRef.current.value = '';
+  }, [onImportXml]);
+
   return (
     <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[85vh] flex flex-col">
@@ -150,10 +166,13 @@ export function GlossaryPanel({
             <p className="text-sm font-medium text-gray-700">导入术语对照</p>
             <div className="flex gap-3 flex-wrap">
               <Button size="sm" variant="outline" onClick={() => fileRef.current?.click()}>
-                上传文件 (TSV/CSV)
+                上传 TSV/CSV
               </Button>
               <input ref={fileRef} type="file" accept=".tsv,.csv,.txt" onChange={handleFileImport} className="hidden" />
-              <span className="text-xs text-gray-400 self-center">支持 tab 分隔、逗号分隔的文本文件</span>
+              <Button size="sm" variant="outline" onClick={() => xmlFileRef.current?.click()}>
+                上传 XML
+              </Button>
+              <input ref={xmlFileRef} type="file" accept=".xml" onChange={handleXmlFileImport} className="hidden" />
             </div>
             <p className="text-xs text-gray-500">
               或直接粘贴对照文本（每行一条：中文=English 或 中文 Tab English）：
